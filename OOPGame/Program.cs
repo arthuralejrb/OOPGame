@@ -1,8 +1,8 @@
-﻿string? gameSize; int dungeonSize = 4, pitAmount = 1, maelstromAmount = 1, amarokAmount = 1;
+﻿string? gameSize; int dungeonSize = 4, pitAmount = 1, maelstromAmount = 1, amarokAmount = 1, mapAmount = 1;
 
 // lets the player choose the game configuration
 Console.Write("Pick the game size: small, medium or large. ");
-gameSize = Console.ReadLine().ToLower();
+gameSize = Console.ReadLine()?.ToLower();
 
 switch (gameSize)
 {
@@ -11,6 +11,7 @@ switch (gameSize)
         pitAmount = 1;
         maelstromAmount = 1;
         amarokAmount = 1;
+        mapAmount = 1;
 
     break;
     case "medium":
@@ -18,6 +19,7 @@ switch (gameSize)
         pitAmount = 2;  
         maelstromAmount = 1;
         amarokAmount = 2;
+        mapAmount = 1;
 
     break;
     case "large":
@@ -25,6 +27,7 @@ switch (gameSize)
         pitAmount = 4;
         maelstromAmount = 2;
         amarokAmount = 3;
+        mapAmount = 2;
 
     break;
     default:
@@ -36,7 +39,7 @@ Console.WriteLine($"{dungeonSize}x{dungeonSize} dungeon created!");
 
 
 // initialize a Game instance and uses it's Run method to start the game
-Game jogo = new Game(dungeonSize, pitAmount, maelstromAmount, amarokAmount);
+Game jogo = new Game(dungeonSize, pitAmount, maelstromAmount, amarokAmount, mapAmount);
 jogo.Run();
 
 
@@ -48,7 +51,7 @@ public record Game
     public int _gridSize {get; set;}
 
     // Game constructor
-    public Game(int gridSize, int pitAmount, int maelstromAmount, int amarokAmount)
+    public Game(int gridSize, int pitAmount, int maelstromAmount, int amarokAmount, int mapAmount)
     {
 
         _gridSize = gridSize;
@@ -112,6 +115,22 @@ public record Game
             }while(_dungeon[x,y] != Grids.Nothing);    
 
             _dungeon[x,y] = Grids.Amarok;
+        
+        }
+
+        for(int i = 0; i < mapAmount; i++)
+        {
+            int x, y;
+
+            do
+            {
+                x = random.Next(0,gridSize);
+                y = random.Next(0,gridSize);
+
+            }while(_dungeon[x,y] != Grids.Nothing);    
+
+            Console.WriteLine($"CHIS: {x} IPSILON: {y}");
+            _dungeon[x,y] = Grids.Map;
         
         }
 
@@ -188,9 +207,18 @@ public record Game
 
             }
 
+            if(_dungeon[_player.Row, _player.Column] == Grids.Map)
+            {
+                Console.WriteLine("You found a map!");
+                Console.WriteLine("use the action :'use map' to reveal the dungeon!");
+                _player.map = true;
+
+            }
+
             // verifies if the player still in the dungeon, if so, it reads the player's action
             if(_player.inDungeon)
             {
+                Console.Clear();
                 Menu();
 
                 string? action;
@@ -236,7 +264,7 @@ public record Game
         Console.WriteLine($"\nFountain status: {_fountain}");
         Console.WriteLine($"Arrows ({_player.Arrows}/5)");
         Console.WriteLine("____________________________________________________________________________________________________________________");
-        Console.WriteLine($"You are in the room at (Row = {_player.Row}, Column = {_player.Column}).");
+        Console.WriteLine($"You are in the room at (Row = {_player.Row + 1}, Column = {_player.Column + 1}).");
 
         _player.CheckSurroundings(_dungeon, _fountain);
 
@@ -265,6 +293,10 @@ public record Game
                 _player.GetHelp();
             break;
             
+            case "use":
+                _player.Use(commands[1], _gridSize, _dungeon);
+            break;
+            
             default:
                 Console.WriteLine($"Command {commands[0]} not valid!");
             break;
@@ -278,6 +310,7 @@ public record Player
     public int Row {get; set;}
     public int Column {get; set;}
     public int Arrows {get; set;}
+    public bool map {get; set;}
     public bool inDungeon {get; set;}
 
     // player construction
@@ -287,6 +320,7 @@ public record Player
         this.Row = Row;
         this.Column = Column;
         this.Arrows = 5;
+        this.map = false;
         inDungeon = true;
 
     }  
@@ -538,7 +572,61 @@ public record Player
 
     }
 
+    public void Use(string item, int gridSize, Grids [,] dungeon)
+    {
+        switch(item)
+        {
+            case "map":
+            if(this.map == true)
+            {
+                Console.WriteLine("");
+                for(int i = 0; i < gridSize; i++)
+                {
+                    
+                    for(int j = 0; j < gridSize; j++)
+                    {
+                        if(dungeon[i,j] == Grids.Exit)
+                            Console.Write("E ");
+                        
+                        if(dungeon[i,j] == Grids.Amarok)
+                            Console.Write("A ");
+                        
+                        if(dungeon[i,j] == Grids.Maelstrom)
+                            Console.Write("M ");
+                        
+                        if(dungeon[i,j] == Grids.Pit)
+                            Console.Write("P ");
+                        
+                        if(dungeon[i,j] == Grids.Fountain)
+                            Console.Write("F ");
+                        
+                        if(dungeon[i,j] == Grids.Map)
+                            Console.Write("M ");
+                        
+                        if(dungeon[i,j] == Grids.Nothing)
+                            Console.Write("N ");
+
+                        if(i == this.Row && j == this.Column)
+                            Console.Write("Y ");
+                    }
+                    Console.WriteLine("");
+                    
+                }
+            }else
+            {
+                Console.WriteLine("You do not have a map!");
+
+            }
+            break;
+            
+            default:
+                Console.WriteLine("Not a valid item");
+
+            break;
+        }
+    }
+
 }
 
-public enum Grids {Nothing, Exit, Fountain, Pit, Maelstrom, Amarok};
+public enum Grids {Nothing, Exit, Fountain, Pit, Maelstrom, Amarok, Map};
 public enum Fountain {Enabled, Disabled};
