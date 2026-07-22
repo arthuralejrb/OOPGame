@@ -129,7 +129,6 @@ public record Game
 
             }while(_dungeon[x,y] != Grids.Nothing);    
 
-            Console.WriteLine($"CHIS: {x} IPSILON: {y}");
             _dungeon[x,y] = Grids.Map;
         
         }
@@ -218,7 +217,7 @@ public record Game
             // verifies if the player still in the dungeon, if so, it reads the player's action
             if(_player.inDungeon)
             {
-                Console.Clear();
+                
                 Menu();
 
                 string? action;
@@ -233,7 +232,7 @@ public record Game
                 {
                     PlayerAction(commands);
                 }
-                
+                Console.Clear();
             }
 
         
@@ -572,6 +571,7 @@ public record Player
 
     }
 
+    // let's the player use different items
     public void Use(string item, int gridSize, Grids [,] dungeon)
     {
         switch(item)
